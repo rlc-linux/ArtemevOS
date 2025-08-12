@@ -94,7 +94,12 @@ fi
 
 # Temporarily add CachyOS repo with TrustAll to bootstrap keyring/mirrorlists
 if ! grep -q "^\[cachyos\]" /etc/pacman.conf; then
-  printf "\n[cachyos]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/\\$repo/\\$arch\n" >> /etc/pacman.conf
+  {
+    echo ""
+    echo "[cachyos]"
+    echo "SigLevel = Optional TrustAll"
+    echo "Server = https://mirror.cachyos.org/repo/\$arch/\$repo"
+  } >> /etc/pacman.conf
 fi
 
 # Sync and install cachyos keyring and mirrorlists (signature relaxed for this repo only)
@@ -106,11 +111,15 @@ if pacman -Q cachyos-keyring >/dev/null 2>&1; then
 fi
 
 # Replace temporary Server/SigLevel with Include once mirrorlists are present
-if grep -q "^\[cachyos\]" /etc/pacman.conf; then
-  sed -i "/^\[cachyos\]$/,/^$/ { s#^Server = .*#Include = /etc/pacman.d/cachyos-mirrorlist#; /SigLevel = Optional TrustAll/d }" /etc/pacman.conf || true
+if [ -f /etc/pacman.d/cachyos-mirrorlist ]; then
+  sed -i \
+    -e "/^\[cachyos\]$/,/^$/ s#^Server = .*#Include = /etc/pacman.d/cachyos-mirrorlist#" \
+    -e "/^\[cachyos\]$/,/^$/ s#^SigLevel = Optional TrustAll$##" \
+    /etc/pacman.conf || true
 fi
 
-if [ "${CACHY_ARCH_LEVEL}" = "v4" ]; then
+# Add optimized repos only if their mirrorlists exist
+if [ "${CACHY_ARCH_LEVEL}" = "v4" ] && [ -f /etc/pacman.d/cachyos-v4-mirrorlist ]; then
   cat >> /etc/pacman.conf <<'EOF_CACHYOS'
 [cachyos-v4]
 Include = /etc/pacman.d/cachyos-v4-mirrorlist
@@ -119,7 +128,7 @@ Include = /etc/pacman.d/cachyos-v4-mirrorlist
 [cachyos-extra-v4]
 Include = /etc/pacman.d/cachyos-v4-mirrorlist
 EOF_CACHYOS
-elif [ "${CACHY_ARCH_LEVEL}" = "v3" ]; then
+elif [ "${CACHY_ARCH_LEVEL}" = "v3" ] && [ -f /etc/pacman.d/cachyos-v3-mirrorlist ]; then
   cat >> /etc/pacman.conf <<'EOF_CACHYOS'
 [cachyos-v3]
 Include = /etc/pacman.d/cachyos-v3-mirrorlist
@@ -129,6 +138,9 @@ Include = /etc/pacman.d/cachyos-v3-mirrorlist
 Include = /etc/pacman.d/cachyos-v3-mirrorlist
 EOF_CACHYOS
 fi
+
+# Re-sync databases now that repos are configured
+pacman --noconfirm -Syy || true
 
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 locale-gen
