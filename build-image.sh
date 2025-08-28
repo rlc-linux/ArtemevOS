@@ -11,8 +11,7 @@ fi
 BUILD_USER=${BUILD_USER:-}
 OUTPUT_DIR=${OUTPUT_DIR:-}
 
-
-source manifest
+source manifest-cachyos
 
 if [ -z "${SYSTEM_NAME}" ]; then
   echo "SYSTEM_NAME must be specified"
@@ -50,27 +49,32 @@ btrfs subvolume create ${BUILD_PATH}
 # copy the makepkg.conf into chroot
 cp /etc/makepkg.conf rootfs/etc/makepkg.conf
 
-# bootstrap using our configuration
-pacstrap -K -C rootfs/etc/pacman.conf ${BUILD_PATH}
+# bootstrap using our CachyOS configuration
+pacstrap -K -C rootfs/etc/pacman-cachyos.conf ${BUILD_PATH}
 
 # copy the builder mirror list into chroot
 mkdir -p rootfs/etc/pacman.d
 cp /etc/pacman.d/mirrorlist rootfs/etc/pacman.d/mirrorlist
 
 # copy files into chroot
-cp -R manifest rootfs/. ${BUILD_PATH}/
+cp -R manifest-cachyos rootfs/. ${BUILD_PATH}/
+mv ${BUILD_PATH}/manifest-cachyos ${BUILD_PATH}/manifest
 
 mkdir ${BUILD_PATH}/local_pkgs
 mkdir ${BUILD_PATH}/aur_pkgs
 mkdir ${BUILD_PATH}/override_pkgs
 
-cp -rv aur-pkgs/*.pkg.tar* ${BUILD_PATH}/aur_pkgs
-cp -rv pkgs/*.pkg.tar* ${BUILD_PATH}/local_pkgs
+cp -rv aur-pkgs/*.pkg.tar* ${BUILD_PATH}/aur_pkgs || true
+cp -rv pkgs/*.pkg.tar* ${BUILD_PATH}/local_pkgs || true
 
 if [ -n "${PACKAGE_OVERRIDES}" ]; then
 	wget --directory-prefix=${BUILD_PATH}/override_pkgs ${PACKAGE_OVERRIDES}
 fi
 
+# Create CachyOS mirrorlist files
+echo 'Server = https://mirror.cachyos.org/repo/$arch/$repo' > ${BUILD_PATH}/etc/pacman.d/cachyos-mirrorlist
+echo 'Server = https://mirror.cachyos.org/repo/$arch_v3/$repo' > ${BUILD_PATH}/etc/pacman.d/cachyos-v3-mirrorlist
+echo 'Server = https://mirror.cachyos.org/repo/$arch_v4/$repo' > ${BUILD_PATH}/etc/pacman.d/cachyos-v4-mirrorlist
 
 # chroot into target
 mount --bind ${BUILD_PATH} ${BUILD_PATH}
@@ -80,16 +84,31 @@ set -x
 
 source /manifest
 
-pacman-key --populate
+# Install CachyOS keyring first
+curl -O https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst
+pacman --noconfirm -U cachyos-keyring-20240331-1-any.pkg.tar.zst
+rm cachyos-keyring-20240331-1-any.pkg.tar.zst
+
+pacman-key --populate cachyos
+pacman-key --populate archlinux
 
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 locale-gen
 
-# Disable parallel downloads
+# Set CachyOS optimized makepkg configuration
+echo 'CFLAGS="-march=x86-64-v3 -mtune=generic -O2 -pipe -fno-plt -fexceptions -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"' >> /etc/makepkg.conf
+echo 'CXXFLAGS="\$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"' >> /etc/makepkg.conf
+echo 'RUSTFLAGS="-C opt-level=2 -C target-cpu=x86-64-v3"' >> /etc/makepkg.conf
+
+# Disable parallel downloads temporarily for stability
 sed -i '/ParallelDownloads/s/^/#/g' /etc/pacman.conf
 
 # Cannot check space in chroot
 sed -i '/CheckSpace/s/^/#/g' /etc/pacman.conf
+
+# Enable Color and ILoveCandy for better output
+sed -i '/^#Color/s/^#//g' /etc/pacman.conf
+echo 'ILoveCandy' >> /etc/pacman.conf
 
 # update package databases
 pacman --noconfirm -Syy
@@ -98,16 +117,13 @@ pacman --noconfirm -Syy
 sed -i '/BUILDENV/s/ check/ !check/g' /etc/makepkg.conf
 sed -i '/OPTIONS/s/ debug/ !debug/g' /etc/makepkg.conf
 
-# install kernel package
-if [ "$KERNEL_PACKAGE_ORIGIN" == "local" ] ; then
-	pacman --noconfirm -U --overwrite '*' \
-	/override_pkgs/${KERNEL_PACKAGE}-*.pkg.tar.zst
-else
-	pacman --noconfirm -S "${KERNEL_PACKAGE}" "${KERNEL_PACKAGE}-headers"
-fi
+# install kernel package from CachyOS repo
+pacman --noconfirm -S "${KERNEL_PACKAGE}" "${KERNEL_PACKAGE}-headers"
 
 # install local packages
-pacman --noconfirm -U --overwrite '*' /local_pkgs/*
+if ls /local_pkgs/* >/dev/null 2>&1; then
+	pacman --noconfirm -U --overwrite '*' /local_pkgs/*
+fi
 rm -rf /var/cache/pacman/pkg
 
 # remove jack2 to prevent conflict with pipewire-jack
@@ -118,11 +134,15 @@ pacman --noconfirm -S --overwrite '*' --disable-download-timeout ${PACKAGES}
 rm -rf /var/cache/pacman/pkg
 
 # install AUR packages
-pacman --noconfirm -U --overwrite '*' /aur_pkgs/*
+if ls /aur_pkgs/* >/dev/null 2>&1; then
+	pacman --noconfirm -U --overwrite '*' /aur_pkgs/*
+fi
 rm -rf /var/cache/pacman/pkg
 
 # install override packages
-pacman --noconfirm -U --overwrite '*' /override_pkgs/*
+if ls /override_pkgs/* >/dev/null 2>&1; then
+	pacman --noconfirm -U --overwrite '*' /override_pkgs/*
+fi
 rm -rf /var/cache/pacman/pkg
 
 # Install the new iptables
@@ -189,14 +209,16 @@ VERSION_ID="${VERSION_NUMBER}"
 BUILD_ID="${BUILD_ID}"
 PRETTY_NAME="${SYSTEM_DESC} ${DISPLAY_VERSION}"
 ID=${SYSTEM_NAME}
-ID_LIKE=arch
+ID_LIKE="arch cachyos"
 ANSI_COLOR="1;31"
 HOME_URL="${WEBSITE}"
 DOCUMENTATION_URL="${DOCUMENTATION_URL}"
 BUG_REPORT_URL="${BUG_REPORT_URL}"' > /usr/lib/os-release
 
 # install extra certificates
-trust anchor --store /extra_certs/*.crt
+if ls /extra_certs/*.crt >/dev/null 2>&1; then
+	trust anchor --store /extra_certs/*.crt
+fi
 
 # run post install hook
 postinstallhook
@@ -208,7 +230,7 @@ pacman -Q > /manifest
 mkdir -p /usr/var/lib/pacman
 cp -r /var/lib/pacman/local /usr/var/lib/pacman/
 
-# move kernel image and initrd to a defualt location if "linux" is not used
+# move kernel image and initrd to a default location if "linux" is not used
 if [ ${KERNEL_PACKAGE} != 'linux' ] ; then
 	mv /boot/vmlinuz-${KERNEL_PACKAGE} /boot/vmlinuz-linux
 	mv /boot/initramfs-${KERNEL_PACKAGE}.img /boot/initramfs-linux.img

@@ -1,9 +1,19 @@
 FROM greyltc/archlinux-aur:latest
 LABEL contributor="shadowapex@gmail.com"
-COPY rootfs/etc/pacman.conf /etc/pacman.conf
+LABEL contributor_cachyos="artemev@artemevos.org"
+
+# Copy CachyOS-optimized pacman configuration
+COPY rootfs/etc/pacman-cachyos.conf /etc/pacman.conf
+
+# Install CachyOS keyring and setup
 RUN echo -e "keyserver-options auto-key-retrieve" >> /etc/pacman.d/gnupg/gpg.conf && \
   # Cannot check space in chroot
   sed -i '/CheckSpace/s/^/#/g' /etc/pacman.conf && \
+  # Install CachyOS keyring first
+  curl -O https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst && \
+  pacman --noconfirm -U cachyos-keyring-20240331-1-any.pkg.tar.zst && \
+  rm cachyos-keyring-20240331-1-any.pkg.tar.zst && \
+  pacman-key --populate cachyos && \
   pacman-key --init && \
   pacman --noconfirm -Syyuu && \
   pacman --noconfirm -S \
@@ -42,7 +52,12 @@ RUN echo -e "#!/bin/bash\nif [[ \"$1\" == \"--version\" ]]; then echo 'fake 244 
 RUN sed -i '/BUILDENV/s/check/!check/g' /etc/makepkg.conf && \
   sed -i '/OPTIONS/s/debug/!debug/g' /etc/makepkg.conf
 
-COPY manifest /manifest
+# Setup CachyOS optimized compiler flags
+RUN echo 'CFLAGS="-march=x86-64-v3 -mtune=generic -O2 -pipe -fno-plt -fexceptions -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"' >> /etc/makepkg.conf && \
+  echo 'CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"' >> /etc/makepkg.conf && \
+  echo 'RUSTFLAGS="-C opt-level=2 -C target-cpu=x86-64-v3"' >> /etc/makepkg.conf
+
+COPY manifest-cachyos /manifest
 # Freeze packages and overwrite with overrides when needed
 RUN source /manifest && \
   echo "Server=https://archive.archlinux.org/repos/${ARCHIVE_DATE}/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist && \
