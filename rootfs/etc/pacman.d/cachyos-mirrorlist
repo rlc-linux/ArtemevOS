@@ -1,0 +1,15 @@
+# CachyOS Repository Mirrorlist
+# Generated for ArtemevOS CachyOS Edition
+# 
+# CachyOS provides optimized packages for better performance
+# For more information visit: https://cachyos.org
+
+# CachyOS main mirror
+Server = https://mirror.cachyos.org/repo/$arch/$repo
+
+# CachyOS x86-64-v3 optimized packages  
+Server = https://mirror.cachyos.org/repo/$arch_v3/$repo
+
+# Fallback mirrors
+Server = https://build-1.cachyos.org/repo/$arch/$repo
+Server = https://de.cachyos.org/repo/$arch/$repo

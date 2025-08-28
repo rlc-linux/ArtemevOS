@@ -60,6 +60,7 @@ export PACKAGES="\
 	fuse2 \
 	fwupd \
 	gamescope \
+	gdm \
 	git \
 	gnome-browser-connector \
 	gnome-console \
@@ -290,12 +291,8 @@ export FILES_TO_DELETE="\
 postinstallhook() {
 	# Add sudo permissions
 	sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
-	echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/dmidecode -t 11
-	" >/etc/sudoers.d/steam
-	echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/chimera-session-use-gamescope
-	${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/chimera-session-use-lightdm
-	${USERNAME} ALL=(ALL) NOPASSWD: /usr/share/chimera/bin/power-tool
-	" >/etc/sudoers.d/chimera
+	echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/dmidecode -t 11" >/etc/sudoers.d/steam
+	echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/systemctl" >/etc/sudoers.d/systemctl
 
 	# CachyOS Performance optimizations
 	echo "kernel.split_lock_mitigate=0" > /etc/sysctl.d/99-cachyos-splitlock.conf
@@ -306,6 +303,61 @@ postinstallhook() {
 	# Enable zram if not already done
 	echo "zram" > /etc/modules-load.d/zram.conf
 	echo "options zram num_devices=1" > /etc/modprobe.d/zram.conf
+
+	# Configure CachyOS keyring if available
+	if pacman -Qi cachyos-keyring >/dev/null 2>&1; then
+		pacman-key --populate cachyos
+	fi
+
+	# Configure GNOME as default desktop session
+	echo "[daemon]
+DefaultSession=gnome
+AutomaticLoginEnable=true
+AutomaticLogin=${USERNAME}
+" > /etc/gdm/custom.conf
+
+	# Create GNOME session switcher script
+	cat > /usr/local/bin/session-select << 'EOF'
+#!/bin/bash
+# Session selector for ArtemevOS
+SESSION="${1:-gnome}"
+
+case "$SESSION" in
+    gnome|desktop)
+        # Switch to GNOME desktop
+        sudo systemctl set-default graphical.target
+        sudo systemctl enable gdm
+        sudo systemctl disable lightdm || true
+        echo "Switched to GNOME desktop session"
+        ;;
+    gaming|steam)
+        # Switch to Steam gaming session
+        sudo systemctl set-default graphical.target 
+        sudo systemctl enable lightdm
+        sudo systemctl disable gdm || true
+        echo "Switched to Steam gaming session"
+        ;;
+    *)
+        echo "Usage: session-select [gnome|desktop|gaming|steam]"
+        echo "Current session: $(loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type --value)"
+        ;;
+esac
+EOF
+	chmod +x /usr/local/bin/session-select
+
+	# Disable Steam auto-start by default - user can enable manually
+	mkdir -p /home/${USERNAME}/.config/autostart
+	cat > /home/${USERNAME}/.config/autostart/steam.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=Steam
+Exec=steam-runtime %U
+NoDisplay=true
+StartupNotify=true
+MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
+Hidden=true
+EOF
+	chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.config
 
 	# download and add racing wheel udev rules
 	pushd /usr/lib/udev/rules.d
@@ -321,33 +373,40 @@ postinstallhook() {
 	pacman --noconfirm -Rnsdd make gcc dkms ${KERNEL_PACKAGE}-headers
 
 	# remove dolphin shortcut to not clutter up the desktop
-	rm /usr/share/applications/dolphin-emu.desktop
+	rm -f /usr/share/applications/dolphin-emu.desktop
 
-	# clean up desktop shortcuts
+	# Keep GNOME applications visible, hide gaming-specific ones by default
+	echo "NoDisplay=true" >> /usr/share/applications/org.chimeraos.Gamescope.desktop || true
+	echo "NoDisplay=true" >> /usr/share/applications/org.chimeraos.app.desktop || true
+	
+	# Keep Steam available but not auto-launching
 	sed -i -e 's/Name=Steam (Runtime)/Name=Steam/' /usr/share/applications/steam.desktop
-	find /usr/share/applications/* |
-		grep -v org.chimeraos.Gamescope.desktop |
-		grep -v org.chimeraos.app.desktop |
-		grep -v org.gnome.Console.desktop |
-		grep -v org.gnome.DiskUtility.desktop |
-		grep -v org.gnome.FileRoller.desktop |
-		grep -v org.gnome.Nautilus.desktop |
-		grep -v org.gnome.Settings.desktop |
-		grep -v org.gnome.Software.desktop |
-		grep -v org.gnome.TextEditor.desktop |
-		grep -v steam.desktop |
-		xargs -I {} sh -c "echo NoDisplay=true >> {}"
-
-	# force -steamdeck option in desktop mode to prevent constant steam updates
-	sed -i 's,Exec=/usr/bin/steam-runtime,Exec=/usr/bin/steam-runtime -steamdeck,' /usr/share/applications/steam.desktop
-
-	# workaround for dosbox compatibility tool being run unnecessarily by Steam at startup
-	sed -i 's,/run-dosbox,/run-dosbox-wrapper,' /usr/share/boxtron/toolmanifest.vdf
+	# Remove Steam from autostart in desktop environments
+	sed -i '/^Exec=/c\Exec=steam-runtime %U' /usr/share/applications/steam.desktop
 
 	# Disable SPDIF/IEC958 audio output to make it more likely the correct HDMI output will be selected by default
 	sed -e '/\[Mapping iec958/,+5 s/^/#/' -i '/usr/share/alsa-card-profile/mixer/profile-sets/default.conf'
 
 	# Replace wpctl with a wrapper to work around Steam resetting audio
-	mv /usr/bin/wpctl /usr/libexec/wpctl
-	mv /usr/bin/wpctl-wrapper /usr/bin/wpctl
+	if [ -f /usr/bin/wpctl-wrapper ]; then
+		mv /usr/bin/wpctl /usr/libexec/wpctl
+		mv /usr/bin/wpctl-wrapper /usr/bin/wpctl
+	fi
+
+	# Set GNOME as default for new installations
+	systemctl set-default graphical.target
+	systemctl enable gdm
+	systemctl disable lightdm || true
+	
+	# Create desktop entry for session switching
+	cat > /usr/share/applications/artemevos-session-select.desktop << 'EOF'
+[Desktop Entry]
+Name=ArtemevOS Session Switcher
+Comment=Switch between Desktop and Gaming modes
+Exec=/usr/local/bin/session-select
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=System;Settings;
+EOF
 }
