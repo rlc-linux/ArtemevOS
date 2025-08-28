@@ -82,54 +82,6 @@ source /manifest
 
 pacman-key --populate
 
-# Add CachyOS repositories and keyring/mirrorlist
-# Detect supported x86-64 level to prefer v4/v3 optimized repos when possible
-if /lib/ld-linux-x86-64.so.2 --help | grep -q "x86-64-v4 (supported"; then
-  CACHY_ARCH_LEVEL="v4"
-elif /lib/ld-linux-x86-64.so.2 --help | grep -q "x86-64-v3 (supported"; then
-  CACHY_ARCH_LEVEL="v3"
-else
-  CACHY_ARCH_LEVEL=""
-fi
-
-# Temporarily add CachyOS repo with TrustAll to bootstrap keyring/mirrorlists
-if ! grep -q "^\[cachyos\]" /etc/pacman.conf; then
-  printf "\n[cachyos]\nSigLevel = Optional TrustAll\nServer = https://mirror.cachyos.org/\\$repo/\\$arch\n" >> /etc/pacman.conf
-fi
-
-# Sync and install cachyos keyring and mirrorlists (signature relaxed for this repo only)
-pacman --noconfirm -Sy cachyos-keyring cachyos-mirrorlist || true
-
-# Populate CachyOS keyring explicitly if available
-if pacman -Q cachyos-keyring >/dev/null 2>&1; then
-  pacman-key --populate cachyos || true
-fi
-
-# Replace temporary Server/SigLevel with Include once mirrorlists are present
-if grep -q "^\[cachyos\]" /etc/pacman.conf; then
-  sed -i "/^\[cachyos\]$/,/^$/ { s#^Server = .*#Include = /etc/pacman.d/cachyos-mirrorlist#; /SigLevel = Optional TrustAll/d }" /etc/pacman.conf || true
-fi
-
-if [ "${CACHY_ARCH_LEVEL}" = "v4" ]; then
-  cat >> /etc/pacman.conf <<'EOF_CACHYOS'
-[cachyos-v4]
-Include = /etc/pacman.d/cachyos-v4-mirrorlist
-[cachyos-core-v4]
-Include = /etc/pacman.d/cachyos-v4-mirrorlist
-[cachyos-extra-v4]
-Include = /etc/pacman.d/cachyos-v4-mirrorlist
-EOF_CACHYOS
-elif [ "${CACHY_ARCH_LEVEL}" = "v3" ]; then
-  cat >> /etc/pacman.conf <<'EOF_CACHYOS'
-[cachyos-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-[cachyos-core-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-[cachyos-extra-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-EOF_CACHYOS
-fi
-
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 locale-gen
 
@@ -198,13 +150,9 @@ echo "${USERNAME}:${USERNAME}" | chpasswd
 # set the default editor, so visudo works
 echo "export EDITOR=/usr/bin/vim" >> /etc/bash.bashrc
 
-# Configure SDDM autologin to Plasma
-mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/autologin.conf <<SDDM_AUTLOGIN
-[Autologin]
-User=${USERNAME}
-Session=plasma.desktop
-SDDM_AUTLOGIN
+echo "[Seat:*]
+autologin-user=${USERNAME}
+" > /etc/lightdm/lightdm.conf.d/00-autologin-user.conf
 
 echo "${SYSTEM_NAME}" > /etc/hostname
 

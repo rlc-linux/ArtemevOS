@@ -10,165 +10,183 @@ export WEBSITE="https://chimeraos.org"
 export DOCUMENTATION_URL="https://chimeraos.org/about"
 export BUG_REPORT_URL="https://github.com/ChimeraOS/chimeraos/issues"
 
-export KERNEL_PACKAGE="linux-cachyos"
-export KERNEL_PACKAGE_ORIGIN="repo"
+export KERNEL_PACKAGE="linux-chimeraos"
+export KERNEL_PACKAGE_ORIGIN="local"
 
 export PACKAGES="\
-    accountsservice \
-    acpi_call-dkms \
-    acsccid \
-    alsa-firmware \
-    alsa-utils \
-    amd-ucode \
-    bash-completion \
-    broadcom-wl-dkms \
-    bzip2 \
-    cifs-utils \
-    cpupower \
-    diffutils \
-    dkms \
-    distrobox \
-    dmidecode \
-    dosbox \
-    efibootmgr \
-    ethtool \
-    evtest \
-    fakeroot \
-    ffmpeg \
-    file \
-    ffmpegthumbnailer \
-    firejail \
-    flatpak \
-    fmt \
-    fuse-zip \
-    fuse2 \
-    fwupd \
-    gamescope \
-    git \
-    gst-plugin-pipewire \
-    gvfs-smb \
-    gvfs-nfs \
-    gzip \
-    htop \
-    intel-gpu-tools \
-    intel-media-driver \
-    intel-ucode \
-    intel-undervolt \
-    less \
-    lib32-curl \
-    lib32-fontconfig \
-    lib32-freetype2 \
-    lib32-libgpg-error \
-    lib32-libnm \
-    lib32-libxinerama \
-    lib32-libxcrypt-compat \
-    lib32-mangohud \
-    lib32-openal \
-    lib32-pipewire \
-    lib32-sdl2 \
-    lib32-systemd \
-    lib32-vulkan-icd-loader \
-    libcurl-gnutls \
-    libidn11 \
-    libnfc \
-    libretro-beetle-pce-fast \
-    libretro-beetle-psx-hw \
-    libretro-desmume \
-    libretro-dolphin \
-    libretro-flycast \
-    libretro-genesis-plus-gx \
-    libretro-kronos \
-    libretro-mame \
-    libretro-mesen-s \
-    libretro-mgba \
-    libretro-mupen64plus-next \
-    libretro-nestopia \
-    libretro-picodrive \
-    libretro-ppsspp \
-    libretro-shaders-slang \
-    libretro-snes9x \
-    libxcrypt-compat \
-    libxss \
-    linux-firmware \
-    liquidctl \
-    logrotate \
-    lrzip \
-    lshw \
-    mangohud \
-    mesa-demos \
-    modemmanager \
-    nano \
-    networkmanager \
-    nfs-utils \
-    noto-fonts-emoji \
-    nss-mdns \
-    nvidia-open-dkms \
-    opencl-nvidia \
-    lib32-opencl-nvidia \
-    nvidia-utils \
-    lib32-nvidia-utils \
-    nvidia-prime \
-    openal \
-    openrazer-daemon \
-    openssh \
-    p7zip \
-    pipewire \
-    pipewire-alsa \
-    pipewire-jack \
-    pipewire-pulse \
-    podman \
-    pulsemixer \
-    python \
-    python-notify2 \
-    python-pyscard \
-    qtractor \
-    retroarch \
-    rsync \
-    smbclient \
-    sof-firmware \
-    sshfs \
-    steam \
-    sudo \
-    tar \
-    tree \
-    ttf-liberation \
-    unace \
-    unrar \
-    unzip \
-    usb_modeswitch \
-    usbutils \
-    vim \
-    vulkan-icd-loader \
-    wavpack \
-    wget \
-    which \
-    wireplumber \
-    wireless-regdb \
-    wqy-zenhei \
-    xdg-desktop-portal \
-    xdg-desktop-portal-kde \
-    xdg-desktop-portal-wlr \
-    xdg-user-dirs-gtk \
-    xf86-video-amdgpu \
-    xorg-server \
-    xz \
-    zip \
-    plasma \
-    plasma-wayland-session \
-    sddm \
-    sddm-kcm \
-    kde-gtk-config \
-    konsole \
-    dolphin \
-    kio-extras \
-    ark \
-    kate \
-    okular \
-    discover \
-    packagekit-qt6 \
+	accountsservice \
+	acpi_call-dkms \
+	acsccid \
+	alsa-firmware \
+	alsa-utils \
+	amd-ucode \
+	bash-completion \
+	broadcom-wl-dkms \
+	bzip2 \
+	cifs-utils \
+	cpupower \
+	diffutils \
+	dkms \
+	distrobox \
+	dmidecode \
+	dosbox \
+	efibootmgr \
+	epiphany \
+	ethtool \
+	evtest \
+	fakeroot \
+	ffmpeg \
+	file \
+	ffmpegthumbnailer \
+	firejail \
+	flatpak \
+	fmt \
+	fuse-zip \
+	fuse2 \
+	fwupd \
+	gamescope \
+	git \
+	gnome-browser-connector \
+	gnome-console \
+	gnome-control-center \
+	gnome-disk-utility \
+	gnome-keyring \
+	gnome-menus \
+	gnome-session \
+	gnome-shell \
+	gnome-software \
+	gnome-system-monitor \
+	gnome-text-editor \
+	gnome-tweaks \
+	gst-plugin-pipewire \
+	gvfs-smb \
+	gvfs-nfs \
+	gzip \
+	htop \
+	intel-gpu-tools \
+	intel-media-driver \
+	intel-ucode \
+	intel-undervolt \
+	less \
+	lib32-curl \
+	lib32-fontconfig \
+	lib32-freetype2 \
+	lib32-libgpg-error \
+	lib32-libnm \
+	lib32-libxinerama \
+	lib32-libxcrypt-compat \
+	lib32-mangohud \
+	lib32-openal \
+	lib32-pipewire \
+	lib32-sdl2 \
+	lib32-systemd \
+	lib32-vulkan-icd-loader \
+	libcurl-gnutls \
+	libidn11 \
+	libnfc \
+	libretro-beetle-pce-fast \
+	libretro-beetle-psx-hw \
+	libretro-desmume \
+	libretro-dolphin \
+	libretro-flycast \
+	libretro-genesis-plus-gx \
+	libretro-kronos \
+	libretro-mame \
+	libretro-mesen-s \
+	libretro-mgba \
+	libretro-mupen64plus-next \
+	libretro-nestopia \
+	libretro-picodrive \
+	libretro-ppsspp \
+	libretro-shaders-slang \
+	libretro-snes9x \
+	libxcrypt-compat \
+	libxss \
+	lightdm \
+	linux-firmware \
+	liquidctl \
+	logrotate \
+	lrzip \
+	loupe \
+	lshw \
+	mangohud \
+	mesa-demos \
+	modemmanager \
+	nano \
+	nautilus \
+	networkmanager \
+	nfs-utils \
+	noto-fonts-emoji \
+	nss-mdns \
+	nvidia-open-dkms \
+	opencl-nvidia \
+	lib32-opencl-nvidia \
+	nvidia-utils \
+	lib32-nvidia-utils \
+	nvidia-prime \
+	openal \
+	openrazer-daemon \
+	openssh \
+	p7zip \
+	pipewire \
+	pipewire-alsa \
+	pipewire-jack \
+	pipewire-pulse \
+	podman \
+	pulsemixer \
+	python \
+	python-notify2 \
+	python-pyscard \
+	qtractor \
+	retroarch \
+	rsync \
+	smbclient \
+	sof-firmware \
+	sshfs \
+	steam \
+	sudo \
+	tar \
+	tree \
+	ttf-liberation \
+	unace \
+	unrar \
+	unzip \
+	usb_modeswitch \
+	usbutils \
+	vim \
+	vulkan-icd-loader \
+	wavpack \
+	wget \
+	which \
+	wireplumber \
+	wireless-regdb \
+	wqy-zenhei \
+	xdg-desktop-portal \
+	xdg-desktop-portal-gnome \
+	xdg-desktop-portal-wlr \
+	xdg-user-dirs-gtk \
+	xf86-video-amdgpu \
+	xorg-server \
+	xz \
+	zip \
 "
 
-export PACKAGE_OVERRIDES=""
+export PACKAGE_OVERRIDES="\
+	https://github.com/ChimeraOS/linux-chimeraos/releases/download/v6.14.7-chos4-2/linux-chimeraos-6.14.7.chos4-2-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/linux-chimeraos/releases/download/v6.14.7-chos4-2/linux-chimeraos-headers-6.14.7.chos4-2-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/lib32-mesa-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/lib32-opencl-mesa-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/lib32-vulkan-intel-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/lib32-vulkan-mesa-layers-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/lib32-vulkan-radeon-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/mesa-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/opencl-mesa-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/vulkan-intel-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/vulkan-mesa-layers-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://github.com/ChimeraOS/mesa-chimeraos/releases/download/25.1.1-chos1-3/vulkan-radeon-1--25.1.1.chos1-3-x86_64.pkg.tar.zst \
+	https://archive.archlinux.org/packages/l/libretro-ppsspp/libretro-ppsspp-42704-1-x86_64.pkg.tar.zst \
+	https://archive.archlinux.org/packages/i/inputplumber/inputplumber-0.60.7-1-x86_64.pkg.tar.zst \
+"
 
 # Each entry is the clone url (https://aur.archlinux.org/{AUR_PACKAGE}.git)
 # Which is often the same as the package name but it can be different.
@@ -218,22 +236,22 @@ export AUR_PACKAGES="\
 "
 
 export SERVICES="\
-    NetworkManager \
-    avahi-daemon \
-    bluetooth \
-    bluetooth-workaround \
-    fstrim.timer \
-    home-swapfile.swap \
-    inputplumber \
-    inputplumber-suspend \
-    sddm \
-    nvidia-powerd \
-    pcscd.socket \
-    powerstation \
-    steam-powerbuttond \
-    sshd \
-    systemd-timesyncd \
-    swapfile \
+	NetworkManager \
+	avahi-daemon \
+	bluetooth \
+	bluetooth-workaround \
+	fstrim.timer \
+	home-swapfile.swap \
+	inputplumber \
+	inputplumber-suspend \
+	lightdm \
+	nvidia-powerd \
+	pcscd.socket \
+	powerstation \
+	steam-powerbuttond \
+	sshd \
+	systemd-timesyncd \
+	swapfile \
 "
 
 export USER_SERVICES="\
@@ -246,7 +264,6 @@ export USER_SERVICES="\
 
 export FILES_TO_DELETE="\
 	/boot/initramfs-linux-fallback.img \
-    /etc/lightdm \
 	/usr/share/SFML \
 	/usr/share/doc \
 	/usr/share/gtk-doc \
@@ -277,42 +294,32 @@ postinstallhook() {
 	rm /usr/share/libalpm/hooks/71-dkms-remove.hook
 	pacman --noconfirm -Rnsdd make gcc dkms ${KERNEL_PACKAGE}-headers
 
-    # remove dolphin emulator shortcut to not clutter up the desktop
-    rm /usr/share/applications/dolphin-emu.desktop || true
+	# remove dolphin shortcut to not clutter up the desktop
+	rm /usr/share/applications/dolphin-emu.desktop
 
-    # clean up desktop shortcuts for KDE session
-    sed -i -e 's/Name=Steam (Runtime)/Name=Steam/' /usr/share/applications/steam.desktop
-    find /usr/share/applications/* |
-        grep -v org.chimeraos.Gamescope.desktop |
-        grep -v org.chimeraos.app.desktop |
-        grep -v org.kde.konsole.desktop |
-        grep -v org.kde.dolphin.desktop |
-        grep -v org.kde.ark.desktop |
-        grep -v org.kde.kate.desktop |
-        grep -v org.kde.okular.desktop |
-        grep -v org.kde.discover.desktop |
-        grep -v org.kde.systemsettings.desktop |
-        grep -v steam.desktop |
-        xargs -I {} sh -c "echo NoDisplay=true >> {}"
+	# clean up desktop shortcuts
+	sed -i -e 's/Name=Steam (Runtime)/Name=Steam/' /usr/share/applications/steam.desktop
+	find /usr/share/applications/* |
+		grep -v org.chimeraos.Gamescope.desktop |
+		grep -v org.chimeraos.app.desktop |
+		grep -v org.gnome.Console.desktop |
+		grep -v org.gnome.DiskUtility.desktop |
+		grep -v org.gnome.FileRoller.desktop |
+		grep -v org.gnome.Nautilus.desktop |
+		grep -v org.gnome.Settings.desktop |
+		grep -v org.gnome.Software.desktop |
+		grep -v org.gnome.TextEditor.desktop |
+		grep -v steam.desktop |
+		xargs -I {} sh -c "echo NoDisplay=true >> {}"
 
-    # force -steamdeck option in desktop mode to prevent constant steam updates
-    sed -i 's,Exec=/usr/bin/steam-runtime,Exec=/usr/bin/steam-runtime -steamdeck,' /usr/share/applications/steam.desktop
+	# force -steamdeck option in desktop mode to prevent constant steam updates
+	sed -i 's,Exec=/usr/bin/steam-runtime,Exec=/usr/bin/steam-runtime -steamdeck,' /usr/share/applications/steam.desktop
 
 	# workaround for dosbox compatibility tool being run unnecessarily by Steam at startup
 	sed -i 's,/run-dosbox,/run-dosbox-wrapper,' /usr/share/boxtron/toolmanifest.vdf
 
-    # Set SDDM theme and cursor
-    mkdir -p /etc/sddm.conf.d
-    cat > /etc/sddm.conf.d/theme.conf <<'SDDM_THEME'
-[Theme]
-Current=breeze
-CursorTheme=Breeze_Snow
-SDDM_THEME
-
-    # Default to Plasma on first login (already set in sddm autologin in build script)
-
-    # Disable SPDIF/IEC958 audio output to make it more likely the correct HDMI output will be selected by default
-    sed -e '/\[Mapping iec958/,+5 s/^/#/' -i '/usr/share/alsa-card-profile/mixer/profile-sets/default.conf'
+	# Disable SPDIF/IEC958 audio output to make it more likely the correct HDMI output will be selected by default
+	sed -e '/\[Mapping iec958/,+5 s/^/#/' -i '/usr/share/alsa-card-profile/mixer/profile-sets/default.conf'
 
 	# Replace wpctl with a wrapper to work around Steam resetting audio
 	mv /usr/bin/wpctl /usr/libexec/wpctl
